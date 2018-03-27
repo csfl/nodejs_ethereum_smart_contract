@@ -1,0 +1,2 @@
+C:\Users\phamg\source\repos\NodejsExpressApi\NodejsExpressApi\obj\Debug\NodejsExpressApi.njsproj.CoreCompileInputs.cache
+C:\Users\phamg\source\repos\NodejsExpressApi\NodejsExpressApi\bin\Microsoft.NodejsTools.WebRole.dll
