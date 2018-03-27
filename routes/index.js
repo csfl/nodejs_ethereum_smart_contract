@@ -54,7 +54,7 @@ router.get('/mint', function (req, res) {
 /*
     GET
     transfer(address_from, private_key_from, address_to, amount)
-    /transfer?address=0xAFF855913D02A4E7198DD91F1dF6FB5bC88cE1F8&amount=10
+    /transfer?address_from=0x034b03c12ea542a18d71234953891db7486cfc67&private_key_from=Microsoftmtc1&address_to=0xAFF855913D02A4E7198DD91F1dF6FB5bC88cE1F8&amount=10
 */
 router.get('/transfer', function (req, res) {
     var address_from = req.query.address_from;
