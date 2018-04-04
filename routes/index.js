@@ -5,24 +5,7 @@ var router = express.Router();
 // Dependencies
 var Web3 = require('web3');
 var Tx = require('ethereumjs-tx');
-var _ = require('lodash');
-// var SolidityFunction = require('web3/lib/function');
 var keythereum = require("keythereum");
-
-var getData = function () {
-    var data = {
-        'item1': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-76.jpg',
-        'item2': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-77.jpg',
-        'item3': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-78.jpg'
-    }
-    return data;
-}
-
-/* GET home page. */
-router.get('/', function (req, res) {
-    res.render('index', { title: 'Express', "data": getData });
-});
-
 
 // This is the actual solidity code that was used to create the token:
 //contract token { 
@@ -44,57 +27,20 @@ router.get('/', function (req, res) {
 //        return true;
 //    }
 //}
-var tokenABI = [{
-    constant: false,
-    inputs: [{
-        name: "receiver",
-        type: "address"
-    }, {
-        name: "amount",
-        type: "uint256"
-    }],
-    name: "sendCoin",
-    outputs: [{
-        name: "sufficient",
-        type: "bool"
-    }],
-    type: "function"
-}, {
-    constant: true,
-    inputs: [{
-        name: "",
-        type: "address"
-    }],
-    name: "coinBalanceOf",
-    outputs: [{
-        name: "",
-        type: "uint256"
-    }],
-    type: "function"
-}, {
-    inputs: [{
-        name: "supply",
-        type: "uint256"
-    }],
-    type: "constructor"
-}, {
-    anonymous: false,
-    inputs: [{
-        indexed: false,
-        name: "sender",
-        type: "address"
-    }, {
-        indexed: false,
-        name: "receiver",
-        type: "address"
-    }, {
-        indexed: false,
-        name: "amount",
-        type: "uint256"
-    }],
-    name: "CoinTransfer",
-    type: "event"
-}]
+
+var getData = function () {
+    var data = {
+        'item1': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-76.jpg',
+        'item2': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-77.jpg',
+        'item3': 'http://public-domain-photos.com/free-stock-photos-1/flowers/cactus-78.jpg'
+    }
+    return data;
+}
+
+/* GET home page. */
+router.get('/', function (req, res) {
+    res.render('index', { title: 'Express', "data": getData });
+});
 
 /*
     GET
@@ -118,62 +64,114 @@ router.get('/transfer', function (req, res) {
     var fromAccount = '0xAFF855913D02A4E7198DD91F1dF6FB5bC88cE1F8';
     var amount = 10;
 
-    // TODO
+    // Step 1: Get private key
     // This is what you get from keythereum when generating a new private key:
+    // METHOD 1
     var keyObject = {"address":"aff855913d02a4e7198dd91f1df6fb5bc88ce1f8","crypto":{"cipher":"aes-128-ctr","ciphertext":"72383fab60816d1e330affa3a1df7f99489dcf0ac5beb5b6b6529600e5e1c941","cipherparams":{"iv":"c8f7d09caefebeeb0e9da61e4b0299d9"},"kdf":"scrypt","kdfparams":{"dklen":32,"n":262144,"p":1,"r":8,"salt":"0d7ef83666daa2c010312321719aa7a644ba67a1022b359ac188f22b6c55adf6"},"mac":"21b8420f58b6dfd732a3c8e81fdeb88cb313c2d40807794f05fe6dc1e8042534"},"id":"40db8baa-454e-4d80-bc07-c818ca1f12c5","version":3};
     var password = '12312312';
-    var privateKey = keythereum.recover(password, keyObject);
-    console.log('privateKey');
+    var privateKey1 = keythereum.recover(password, keyObject);    
+    // METHOD 2
+    var privateKey = 'f56a5b3300e1b50ff24a2eac812e7d3e694b7b409134aa32314b2764442190ac';
+    privateKey = new Buffer(privateKey, 'hex');
+
+    console.log('privateKey (method 1):');
+    console.log(privateKey1);
+    console.log('privateKey (method 2):');
     console.log(privateKey);
 
-    // Step 1: This is the ABI from the token solidity code
-    // HAD MOVED outside of this function
+    // Step 2: This is the ABI from the token solidity code
+    var tokenABI = [{
+        constant: false,
+        inputs: [{
+            name: "receiver",
+            type: "address"
+        }, {
+            name: "amount",
+            type: "uint256"
+        }],
+        name: "sendCoin",
+        outputs: [{
+            name: "sufficient",
+            type: "bool"
+        }],
+        type: "function"
+    }, {
+        constant: true,
+        inputs: [{
+            name: "",
+            type: "address"
+        }],
+        name: "coinBalanceOf",
+        outputs: [{
+            name: "",
+            type: "uint256"
+        }],
+        type: "function"
+    }, {
+        inputs: [{
+            name: "supply",
+            type: "uint256"
+        }],
+        type: "constructor"
+    }, {
+        anonymous: false,
+        inputs: [{
+            indexed: false,
+            name: "sender",
+            type: "address"
+        }, {
+            indexed: false,
+            name: "receiver",
+            type: "address"
+        }, {
+            indexed: false,
+            name: "amount",
+            type: "uint256"
+        }],
+        name: "CoinTransfer",
+        type: "event"
+    }]
 
-    // Step 2:
+    // Step 3: produce payloadData, remember .encodeABI()
     var token = new web3.eth.Contract(tokenABI, walletContractAddress);
-    // var solidityFunction = new SolidityFunction('', _.find(ABI, { name: 'sendCoin' }), '');
-    // console.log('This shows what toPayload expects as an object');
-    // console.log(solidityFunction);
+    var payloadData = token.methods.sendCoin(toAccount, amount).encodeABI();
+    console.log('payloadData:');
+    console.log(payloadData);
 
-    // Step 3:
-    var payloadData = token.methods.sendCoin(toAccount, amount);
+    // Step 4: build rawTx
+    web3.eth.getGasPrice().then(function (gasPrice) {
+        var gasPriceHex = web3.utils.toHex(gasPrice);
+        var gasLimitHex = web3.utils.toHex(300000);
+        console.log('Current gasPrice: ' + gasPrice + ' OR ' + gasPriceHex);
 
-    // Step 4:
-    var gasPrice = web3.eth.gasPrice;
-    var gasPriceHex = web3.utils.toHex(gasPrice);
-    var gasLimitHex = web3.utils.toHex(300000);
+        web3.eth.getTransactionCount(fromAccount).then(function (nonce) {
+            var nonceHex = web3.utils.toHex(nonce);
+            console.log('nonce (transaction count on fromAccount): ' + nonce + '(' + nonceHex + ')');
 
-    console.log('Current gasPrice: ' + gasPrice + ' OR ' + gasPriceHex);
+            var rawTx = {
+                nonce: nonceHex,
+                gasPrice: gasPriceHex,
+                gasLimit: gasLimitHex,
+                to: walletContractAddress,
+                from: fromAccount,
+                value: '0x00',
+                data: payloadData
+            };
+            console.log('rawTx:');
+            console.log(rawTx);
 
-    var nonce =  web3.eth.getTransactionCount(fromAccount) ;
-    var nonceHex = web3.utils.toHex(nonce);
-    console.log('nonce (transaction count on fromAccount): ' + nonce + '(' + nonceHex + ')');
+            // Step 5: sign the rawTx with privateKey then send to signed Transaction to network
+            var tx = new Tx(rawTx);
+            tx.sign(privateKey);
+            var serializedTx = tx.serialize();
 
-    var rawTx = {
-        nonce: nonceHex,
-        gasPrice: gasPriceHex,
-        gasLimit: gasLimitHex,
-        to: walletContractAddress,
-        from: fromAccount,
-        value: '0x00',
-        data: payloadData
-    };
-
-    // Step 5:
-    var tx = new Tx(rawTx);
-    tx.sign(privateKey);
-
-    var serializedTx = tx.serialize();
-
-    web3.eth.sendRawTransaction(serializedTx.toString('hex'), function (err, hash) {
-        if (err) {
-            console.log('Error:');
-            console.log(err);
-        }
-        else {
-            console.log('Transaction receipt hash pending');
-            console.log(hash);
-        }
+            web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).then(function (receipt) {
+                console.log('TxHash:');
+                console.log(receipt);
+                console.log('Transaction receipt:');
+                var receipt = web3.eth.getTransactionReceipt(receipt).then(console.log);
+            });
+        });
     });
 
     return res.json({ success: true });
