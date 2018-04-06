@@ -166,10 +166,9 @@ router.get('/transfer', function (req, res) {
             var serializedTx = tx.serialize();
 
             web3.eth.sendSignedTransaction('0x' + serializedTx.toString('hex')).then(function (receipt) {
-                console.log('TxHash:');
-                console.log(receipt);
                 console.log('Transaction receipt:');
-                var receipt = web3.eth.getTransactionReceipt(receipt).then(console.log);
+                console.log(receipt);
+                console.log('Transaction has gone through successfully! :)');
             });
         });
     });
